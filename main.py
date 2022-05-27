@@ -124,6 +124,7 @@ def get_times_for_functions(data):
             'encryption': encryption_times,
             'decryption': decryption_times}
 
+
 def plot_results(all_times):
     data_sizes = [data_size['data size'] for data_size in all_times]
     alg_times = {}
@@ -138,12 +139,29 @@ def plot_results(all_times):
     # convert Bytes to MB
     data_sizes_plot = [ds/10**6 for ds in data_sizes]
 
+    algs_no_plot = ['AES-128', 'AES-192', 'Blowfish(128 key)']
+
     for alg in alg_times:
-        enc_times = alg_times[alg]['encryption']
-        dec_times = alg_times[alg]['decryption']
-        plt.semilogx(data_sizes_plot, enc_times, label=alg)
-        # plt.semilogx(data_sizes_plot, dec_times)
+        if alg not in algs_no_plot:
+            enc_times = alg_times[alg]['encryption']
+            dec_times = alg_times[alg]['decryption']
+            plt.semilogx(data_sizes_plot, enc_times, label=alg)
+            # plt.semilogx(data_sizes_plot, dec_times)
     plt.title('Czasy szyfrowania symetrycznego')
+    plt.xlabel('Rozmiar danych [MB]')
+    plt.ylabel('Czas szyfrowania[s]')
+    plt.legend()
+    plt.show()
+
+    aes_algs = ['AES-128', 'AES-192', 'AES-256']
+
+    for alg in alg_times:
+        if alg in aes_algs:
+            enc_times = alg_times[alg]['encryption']
+            dec_times = alg_times[alg]['decryption']
+            plt.semilogx(data_sizes_plot, enc_times, label=alg)
+            # plt.semilogx(data_sizes_plot, dec_times)
+    plt.title('Czasy szyfrowania AES')
     plt.xlabel('Rozmiar danych [MB]')
     plt.ylabel('Czas szyfrowania[s]')
     plt.legend()
@@ -153,7 +171,7 @@ def plot_results(all_times):
 if __name__ == "__main__":
 
     all_times = []
-    data_sizes = [i * 10**6 for i in [1, 10, 50, 100, 500, 1000]]
+    data_sizes = [i * 10**6 for i in [1, 10, 50, 100]]
     for data_size in data_sizes:
         data = get_random_bytes(data_size)
         cur_times = get_times_for_functions(data)
