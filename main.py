@@ -1,6 +1,7 @@
 from crypto_functions import *
 import time
 
+import matplotlib.pyplot as plt
 
 def get_times_for_functions(data):
 
@@ -123,6 +124,30 @@ def get_times_for_functions(data):
             'encryption': encryption_times,
             'decryption': decryption_times}
 
+def plot_results(all_times):
+    data_sizes = [data_size['data size'] for data_size in all_times]
+    alg_times = {}
+    for data_size, cur_times in zip(data_sizes, [t['times'] for t in all_times]):
+        for alg, enc_time, dec_time in zip(cur_times['algorithm'], cur_times['encryption'], cur_times['decryption']):
+            if alg not in alg_times:
+                alg_times[alg] = {'encryption': [], 'decryption': []}
+            alg_times[alg]['encryption'].append(enc_time)
+            alg_times[alg]['decryption'].append(dec_time)
+
+
+    # convert Bytes to MB
+    data_sizes_plot = [ds/10**6 for ds in data_sizes]
+
+    for alg in alg_times:
+        enc_times = alg_times[alg]['encryption']
+        dec_times = alg_times[alg]['decryption']
+        plt.semilogx(data_sizes_plot, enc_times, label=alg)
+        # plt.semilogx(data_sizes_plot, dec_times)
+    plt.title('Czasy szyfrowania symetrycznego')
+    plt.xlabel('Rozmiar danych [MB]')
+    plt.ylabel('Czas szyfrowania[s]')
+    plt.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -139,6 +164,6 @@ if __name__ == "__main__":
 
         all_times.append({'data size': data_size, 'times': cur_times})
 
-
+    plot_results(all_times)
 
 
