@@ -112,12 +112,12 @@ def get_times_for_functions(data):
     # decrypted_data = decrypt_rsa(ciphertext=encrypted_data, private_key=private_key)
     # decryption_times.append(time.time_ns() - start_time)
 
-    # DSA
-
-    private_key, public_key = gen_key_dsa(2048)
-
-    signature = sign_dsa(msg=data, private_key=private_key)
-    verification = verify_dsa(msg=data, signature=signature, public_key=public_key)
+    # # DSA
+    #
+    # private_key, public_key = gen_key_dsa(2048)
+    #
+    # signature = sign_dsa(msg=data, private_key=private_key)
+    # verification = verify_dsa(msg=data, signature=signature, public_key=public_key)
 
     return {'algorithm': ['DES', '3DES', 'Blowfish(128 key)', 'Blowfish(256 key)', 'AES-128', 'AES-192', 'AES-256'],
             'encryption': encryption_times,
@@ -127,18 +127,18 @@ def get_times_for_functions(data):
 
 if __name__ == "__main__":
 
-    times = []
-    data_sizes = [10**i for i in range(5,9)]
+    all_times = []
+    data_sizes = [i * 10**6 for i in [1, 10, 50, 100, 500, 1000]]
     for data_size in data_sizes:
         data = get_random_bytes(data_size)
         cur_times = get_times_for_functions(data)
 
-        # convert time in ns to ms
-        cur_times['encryption'] = [ i/(10**6) for i in cur_times['encryption']]
-        cur_times['decryption'] = [ i / (10 ** 6) for i in cur_times['decryption']]
+        # convert time in ns to s
+        cur_times['encryption'] = [ i/(10**9) for i in cur_times['encryption']]
+        cur_times['decryption'] = [ i / (10 ** 9) for i in cur_times['decryption']]
 
-        times.append({'data size': data_size, 'times': cur_times})
+        all_times.append({'data size': data_size, 'times': cur_times})
 
 
-    print(times)
+
 

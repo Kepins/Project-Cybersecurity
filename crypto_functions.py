@@ -54,7 +54,7 @@ def decrypt_des_cbc(ciphertext, key, iv):
     return plaintext
 
 
-# 3DES cbc
+# DES3 cbc
 
 def encrypt_des3_cbc(plaintext):
     while True:
