@@ -210,6 +210,7 @@ def plot_results_symmetric(all_times):
     plt.xlabel('Rozmiar danych [MB]')
     plt.ylabel('Czas szyfrowania[s]')
     plt.legend()
+    plt.savefig('pngs/Czasy szyfrowania symetrycznego.png')
     plt.show()
 
     aes_algs = ['AES-128', 'AES-192', 'AES-256']
@@ -224,8 +225,8 @@ def plot_results_symmetric(all_times):
     plt.xlabel('Rozmiar danych [MB]')
     plt.ylabel('Czas szyfrowania[s]')
     plt.legend()
+    plt.savefig('pngs/Czasy szyfrowania AES.png')
     plt.show()
-
 
 def plot_results_asymmetric_vs_symmetric(all_times):
     data_sizes = [data_size['data size'] for data_size in all_times]
@@ -249,8 +250,8 @@ def plot_results_asymmetric_vs_symmetric(all_times):
     plt.xlabel('Rozmiar danych [kB]')
     plt.ylabel('Czas szyfrowania[s]')
     plt.legend()
+    plt.savefig('pngs/Czasy szyfrowania i deszyfrowania symetryczne i asymetryczne.png')
     plt.show()
-
 
 
 if __name__ == "__main__":
