@@ -114,8 +114,8 @@ def decrypt_aes_cbc(ciphertext, key, iv):
 # RSA
 
 def gen_key_rsa(key_length):
-    if key_length != 1024 and key_length != 2048 and key_length != 3072:
-        raise ValueError('RSA key length should be equal to 1024 or 2048 or 3072')
+    if key_length != 1024 and key_length != 2048 and key_length != 3072 and key_length != 4096:
+        raise ValueError('RSA key length should be equal to 1024 or 2048 or 3072 or 4096')
     key = RSA.generate(key_length)
     private_key = key
     public_key = key.public_key()

@@ -3,7 +3,7 @@ import time
 
 import matplotlib.pyplot as plt
 
-def get_times_for_functions(data):
+def get_times_symmetric(data):
 
     encryption_times = []
     decryption_times = []
@@ -99,19 +99,65 @@ def get_times_for_functions(data):
     decryption_times.append(time.time_ns() - start_time)
 
 
-    # # RSA
-    #
-    # private_key, public_key = gen_key_rsa(2048)
-    #
-    # # encryption
-    # start_time = time.time_ns()
-    # encrypted_data = encrypt_rsa(plaintext=data, public_key=public_key)
-    # encryption_times.append(time.time_ns() - start_time)
-    #
-    # # decryption
-    # start_time = time.time_ns()
-    # decrypted_data = decrypt_rsa(ciphertext=encrypted_data, private_key=private_key)
-    # decryption_times.append(time.time_ns() - start_time)
+
+    return {'algorithm': ['DES', '3DES', 'Blowfish(128 key)', 'Blowfish(256 key)', 'AES-128', 'AES-192', 'AES-256', 'RSA-2048'],
+            'encryption': encryption_times,
+            'decryption': decryption_times}
+
+
+def get_times_asymmetric_vs_symmetric(data):
+
+    encryption_times = []
+    decryption_times = []
+
+
+    # RSA 2048
+
+    rsa_key_length = 2048
+    private_key, public_key = gen_key_rsa(rsa_key_length)
+
+    # sha1 160 bits
+    max_bytes_encryption = rsa_key_length // 8 - 2 * 160 // 8 - 2
+    chunks = [data[x:x + max_bytes_encryption] for x in range(0, len(data), max_bytes_encryption)]
+    encrypted_chunks = []
+    decrypted_chunks = []
+
+    # encryption
+    start_time = time.time_ns()
+    for chunk in chunks:
+        encrypted_chunks.append(encrypt_rsa(plaintext=chunk, public_key=public_key))
+    encryption_times.append(time.time_ns() - start_time)
+
+    # decryption
+    start_time = time.time_ns()
+    for chunk in encrypted_chunks:
+        decrypted_chunks.append(decrypt_rsa(ciphertext=chunk, private_key=private_key))
+    decryption_times.append(time.time_ns() - start_time)
+
+
+    # RSA 4096
+
+    rsa_key_length = 4096
+    private_key, public_key = gen_key_rsa(rsa_key_length)
+
+    # sha1 160 bits
+    max_bytes_encryption = rsa_key_length // 8 - 2 * 160 // 8 - 2
+    chunks = [data[x:x + max_bytes_encryption] for x in range(0, len(data), max_bytes_encryption)]
+    encrypted_chunks = []
+    decrypted_chunks = []
+
+    # encryption
+    start_time = time.time_ns()
+    for chunk in chunks:
+        encrypted_chunks.append(encrypt_rsa(plaintext=chunk, public_key=public_key))
+    encryption_times.append(time.time_ns() - start_time)
+
+    # decryption
+    start_time = time.time_ns()
+    for chunk in encrypted_chunks:
+        decrypted_chunks.append(decrypt_rsa(ciphertext=chunk, private_key=private_key))
+    decryption_times.append(time.time_ns() - start_time)
+
 
     # # DSA
     #
@@ -120,12 +166,25 @@ def get_times_for_functions(data):
     # signature = sign_dsa(msg=data, private_key=private_key)
     # verification = verify_dsa(msg=data, signature=signature, public_key=public_key)
 
-    return {'algorithm': ['DES', '3DES', 'Blowfish(128 key)', 'Blowfish(256 key)', 'AES-128', 'AES-192', 'AES-256'],
+
+    # AES 256 bit key
+
+    # encryption
+    start_time = time.time_ns()
+    encrypted_data, key, iv = encrypt_aes_cbc(plaintext=data, key_length=256)
+    encryption_times.append(time.time_ns() - start_time)
+
+    # decryption
+    start_time = time.time_ns()
+    decrypted_data = decrypt_aes_cbc(ciphertext=encrypted_data, key=key, iv=iv)
+    decryption_times.append(time.time_ns() - start_time)
+
+    return {'algorithm': ['RSA(2048 key)', 'RSA(4096 key)', 'AES-256'],
             'encryption': encryption_times,
             'decryption': decryption_times}
 
 
-def plot_results(all_times):
+def plot_results_symmetric(all_times):
     data_sizes = [data_size['data size'] for data_size in all_times]
     alg_times = {}
     for data_size, cur_times in zip(data_sizes, [t['times'] for t in all_times]):
@@ -168,20 +227,61 @@ def plot_results(all_times):
     plt.show()
 
 
+def plot_results_asymmetric_vs_symmetric(all_times):
+    data_sizes = [data_size['data size'] for data_size in all_times]
+    alg_times = {}
+    for data_size, cur_times in zip(data_sizes, [t['times'] for t in all_times]):
+        for alg, enc_time, dec_time in zip(cur_times['algorithm'], cur_times['encryption'], cur_times['decryption']):
+            if alg not in alg_times:
+                alg_times[alg] = {'encryption': [], 'decryption': []}
+            alg_times[alg]['encryption'].append(enc_time)
+            alg_times[alg]['decryption'].append(dec_time)
+
+    # convert Bytes to kB
+    data_sizes_plot = [ds / 10 ** 3 for ds in data_sizes]
+
+    for alg in alg_times:
+        enc_times = alg_times[alg]['encryption']
+        dec_times = alg_times[alg]['decryption']
+        plt.semilogx(data_sizes_plot, enc_times, label=alg+' encryption')
+        plt.semilogx(data_sizes_plot, dec_times, label=alg+' decryption')
+    plt.title('Czasy szyfrowania RSA vs AES')
+    plt.xlabel('Rozmiar danych [kB]')
+    plt.ylabel('Czas szyfrowania[s]')
+    plt.legend()
+    plt.show()
+
+
+
 if __name__ == "__main__":
 
-    all_times = []
-    data_sizes = [i * 10**6 for i in [1, 10, 50, 100]]
-    for data_size in data_sizes:
+    all_times_symmetric = []
+    # how many MB
+    data_sizes_symmetric = [i * 10**6 for i in [1, 10, 50, 100, 500, 1000]]
+    for data_size in data_sizes_symmetric:
         data = get_random_bytes(data_size)
-        cur_times = get_times_for_functions(data)
+        cur_times = get_times_symmetric(data)
 
         # convert time in ns to s
         cur_times['encryption'] = [ i/(10**9) for i in cur_times['encryption']]
         cur_times['decryption'] = [ i / (10 ** 9) for i in cur_times['decryption']]
 
-        all_times.append({'data size': data_size, 'times': cur_times})
+        all_times_symmetric.append({'data size': data_size, 'times': cur_times})
 
-    plot_results(all_times)
+    plot_results_symmetric(all_times_symmetric)
 
+    all_times_asymmetric_vs_symmetric = []
+    # how many kB
+    data_sizes_asymmetric_vs_symmetric = [i * 10 ** 3 for i in [1, 10, 50, 100, 500, 1000]]
+    for data_size in data_sizes_asymmetric_vs_symmetric:
+        data = get_random_bytes(data_size)
+        cur_times = get_times_asymmetric_vs_symmetric(data)
+
+        # convert time in ns to s
+        cur_times['encryption'] = [ i/(10**9) for i in cur_times['encryption']]
+        cur_times['decryption'] = [ i / (10 ** 9) for i in cur_times['decryption']]
+
+        all_times_asymmetric_vs_symmetric.append({'data size': data_size, 'times': cur_times})
+
+    plot_results_asymmetric_vs_symmetric(all_times_asymmetric_vs_symmetric)
 
